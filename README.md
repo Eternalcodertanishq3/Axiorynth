@@ -2,7 +2,7 @@
 
 > A math-first, traceable Rust chess engine built to grow from correct rules into serious research-grade play.
 
-[![Language](https://img.shields.io/badge/Rust-2024-000000?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
+[![Language](https://img.shields.io/badge/Rust-2026-000000?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![Engine](https://img.shields.io/badge/Chess%20Engine-UCI-blue?style=for-the-badge)](https://www.chessprogramming.org/UCI)
 [![Status](https://img.shields.io/badge/Phase-10%20Engine%20Core%20Complete-success?style=for-the-badge)](docs/master-implementation-plan.md)
 
