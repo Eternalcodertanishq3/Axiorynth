@@ -17,10 +17,11 @@ The project goal is to grow in layers:
 8. adaptive memory
 9. training and export reports
 10. research roadmap toward stronger play
+11. local full-stack play app
 
-The full web app, backend database, online play, and visual chessboard will be a
-separate application layer on top of this engine core. The engine-side work here
-is designed so that frontend/backend work can call clean Rust APIs later.
+The dedicated database backend and online play remain future layers. The local
+web app now exists and calls the Rust engine through a machine-readable state
+command.
 
 ## Completed Phases
 
@@ -160,20 +161,41 @@ Implemented:
 - tuning parameter list
 - recommended next engineering tasks
 
-## Future App Layer
+### Phase 11 - Local Full-Stack Play App
 
-After the engine-side phases, the separate app layer should include:
+Goal:
 
-- Rust or Node backend API
+- provide a usable chess interface
+- connect the frontend to the Rust engine
+- expose the actual evaluation/search math while playing
+
+Implemented:
+
+- Next.js app in `apps/web`
+- API route for engine state
+- Rust `frontend-state` JSON bridge
+- custom chessboard
+- human vs human mode
+- human vs bot mode
+- bot level selector
+- analysis depth selector
+- legal moves panel
+- move history
+- replay slider
+- browser-local saved game archive
+- toggleable math panel
+
+## Future Platform Layer
+
+After the local app phase, the platform layer should include:
+
+- Rust Axum backend API
 - persistent database
-- React/TypeScript frontend
-- chessboard UI
-- side math panel
 - history page
-- replay viewer
-- bot selection screen
 - adaptive profile display
 - optional online multiplayer
+- streamed search events
+- player accounts
 
-Those require frontend/backend scaffolding and dependency choices, so they are
-tracked after the engine core is ready.
+The full current roadmap and limitations are tracked in
+`docs/next-plans-and-current-limitations.md`.

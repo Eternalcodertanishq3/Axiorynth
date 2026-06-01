@@ -1,0 +1,13 @@
+{
+  "name": "axiorynth",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "engine:test": "cargo test",
+    "web:dev": "npm --workspace @axiorynth/web run dev",
+    "web:build": "npm --workspace @axiorynth/web run build",
+    "web:start": "npm --workspace @axiorynth/web run start"
+  }
+}

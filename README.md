@@ -4,10 +4,10 @@
 
 [![Language](https://img.shields.io/badge/Rust-2026-000000?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![Engine](https://img.shields.io/badge/Chess%20Engine-UCI-blue?style=for-the-badge)](https://www.chessprogramming.org/UCI)
-[![Status](https://img.shields.io/badge/Phase-10%20Engine%20Core%20Complete-success?style=for-the-badge)](docs/master-implementation-plan.md)
+[![Status](https://img.shields.io/badge/Local%20Full%20Stack-App%20Ready-success?style=for-the-badge)](docs/master-implementation-plan.md)
 
-Axiorynth is a custom chess engine and future chess platform foundation. It is
-designed around three principles:
+Axiorynth is a custom chess engine and local chess platform. It is designed
+around three principles:
 
 - **Correctness first**: legal move generation is verified by perft suites.
 - **Visible intelligence**: evaluation and search expose real numeric math.
@@ -15,7 +15,8 @@ designed around three principles:
 
 This is not a Stockfish-class engine yet. It is a serious foundation built in
 phases, with UCI support, search, analysis reports, bot levels, game history,
-adaptive memory, and research-roadmap artifacts already in place.
+adaptive memory, research-roadmap artifacts, and a Next.js play app already in
+place.
 
 ## Highlights
 
@@ -41,6 +42,13 @@ adaptive memory, and research-roadmap artifacts already in place.
 - adaptive player memory
 - training/export reports
 - research roadmap for future strength work
+- Next.js frontend
+- interactive chessboard
+- human vs human and human vs bot modes
+- side panel with actual numeric math
+- legal possibilities panel
+- replay controls
+- browser-local saved game archive
 
 ## Quick Start
 
@@ -74,6 +82,19 @@ Run a small benchmark:
 cargo run -p axiorynth_engine --bin axiorynth -- bench 3
 ```
 
+Run the web app:
+
+```powershell
+npm.cmd install
+npm.cmd run web:dev
+```
+
+Then open:
+
+```text
+http://127.0.0.1:3000
+```
+
 ## CLI Commands
 
 ```powershell
@@ -86,6 +107,7 @@ cargo run -p axiorynth_engine --bin axiorynth -- bot 5 startpos
 cargo run -p axiorynth_engine --bin axiorynth -- game e2e4 e7e5 g1f3
 cargo run -p axiorynth_engine --bin axiorynth -- memory e2e4 e7e5
 cargo run -p axiorynth_engine --bin axiorynth -- train e2e4 e7e5
+cargo run -p axiorynth_engine --bin axiorynth -- frontend-state --bot-level 3 --depth 2 e2e4 e7e5
 cargo run -p axiorynth_engine --bin axiorynth -- roadmap
 ```
 
@@ -127,6 +149,8 @@ candidate 1: ...
 
 ```mermaid
 flowchart TD
+    Web["Next.js Web App"] --> API["Next.js API Route"]
+    API --> CLI["Rust CLI Bridge"]
     CLI["CLI / UCI Process"] --> Engine["Axiorynth Engine Core"]
     Engine --> Board["Board, FEN, Bitboards"]
     Engine --> Movegen["Legal Move Generation"]
@@ -146,7 +170,14 @@ flowchart TD
 ```text
 chess/
   Cargo.toml
+  package.json
   README.md
+  apps/
+    web/
+      app/
+        api/state/route.ts
+        page.tsx
+        globals.css
   docs/
     master-implementation-plan.md
     phase-1-engine-foundation.md
@@ -192,10 +223,12 @@ chess/
 | 8 | Adaptive memory | Complete |
 | 9 | Training/export reports | Complete |
 | 10 | Research roadmap artifacts | Complete |
+| 11 | Local Next.js play app | Complete |
 
 Read the full plan here:
 
 - [Master Implementation Plan](docs/master-implementation-plan.md)
+- [Next Plans And Current Limitations](docs/next-plans-and-current-limitations.md)
 
 ## Engine Systems
 
@@ -296,10 +329,33 @@ Tests cover:
 - training exports
 - research roadmap generation
 
+## Web App
+
+The web app is a local full-stack interface:
+
+- custom chessboard
+- self-play mode
+- human vs bot mode
+- bot level selector
+- analysis depth selector
+- legal move list
+- move history
+- replay slider
+- saved game archive in browser local storage
+- visible evaluation and search math
+
+The frontend calls the Rust engine through:
+
+```text
+Next.js API route -> cargo run -> axiorynth frontend-state -> JSON response
+```
+
+This keeps Rust as the source of chess truth while letting the app move quickly.
+
 ## Current Limitations
 
 Axiorynth is not yet a top-engine-strength competitor. The current engine is a
-well-structured research foundation.
+well-structured research foundation with a complete local app layer.
 
 Known limitations:
 
@@ -311,7 +367,8 @@ Known limitations:
 - no opening book yet
 - no tablebase support yet
 - no persistent database yet
-- no graphical frontend yet
+- no dedicated Rust HTTP service yet
+- no WebSocket analysis stream yet
 - no online multiplayer yet
 
 ## Next Plans
@@ -335,26 +392,24 @@ SQLite first
 WebSocket analysis stream
 ```
 
-### 2. Frontend Play App
+### 2. Frontend Expansion
 
-Build the actual user-facing chess app:
+Expand the current user-facing chess app:
 
-- chessboard
-- human vs human
-- human vs bot
-- bot level selector
-- move list
-- history viewer
-- replay controls
-- math panel toggle
-- analysis panel modes
+- drag-and-drop pieces
+- promotion chooser
+- history page
+- opening explorer
+- training review mode
+- streamed search panel
+- richer game archive
 
 Recommended stack:
 
 ```text
-React + TypeScript
-chessboard UI component or custom board
-WebSocket analysis panel
+Next.js + TypeScript
+Rust Axum API
+WebSocket analysis stream
 ```
 
 ### 3. Engine Strength Phase
