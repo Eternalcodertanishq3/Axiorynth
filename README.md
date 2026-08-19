@@ -4,51 +4,23 @@
 
 [![Language](https://img.shields.io/badge/Rust-2026-000000?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![Engine](https://img.shields.io/badge/Chess%20Engine-UCI-blue?style=for-the-badge)](https://www.chessprogramming.org/UCI)
-[![Status](https://img.shields.io/badge/Local%20Full%20Stack-App%20Ready-success?style=for-the-badge)](docs/master-implementation-plan.md)
+[![Status](https://img.shields.io/badge/Multiplayer-Platform%20Ready-success?style=for-the-badge)](docs/master-implementation-plan.md)
 
-Axiorynth is a custom chess engine and local chess platform. It is designed
-around three principles:
+Axiorynth is a custom chess engine and competitive multiplayer chess platform. It is designed around three principles:
 
-- **Correctness first**: legal move generation is verified by perft suites.
-- **Visible intelligence**: evaluation and search expose real numeric math.
-- **Research path**: the codebase is structured for stronger search, tuning, self-play, and future NNUE work.
-
-This is not a Stockfish-class engine yet. It is a serious foundation built in
-phases, with UCI support, search, analysis reports, bot levels, game history,
-adaptive memory, research-roadmap artifacts, and a Next.js play app already in
-place.
+- **Correctness first**: Legal move generation is verified by extensive perft suites.
+- **Visible intelligence**: Evaluation and search expose real numeric math live to the user.
+- **Scientific research**: The codebase is structured for SPSA optimization, self-play, opening books, tablebases, and deep neural evaluations (NNUE).
 
 ## Highlights
 
-- Rust engine core with bitboards
-- FEN parse/export
-- legal move generation
-- castling, en passant, promotions
-- make/undo with compact undo records
-- Zobrist hashing
-- perft and divide
-- numeric evaluation breakdown
-- negamax alpha-beta search
-- quiescence search
-- transposition table
-- hash move ordering
-- killer moves and history heuristic
-- UCI protocol support
-- per-depth UCI `info` streaming
-- benchmark command
-- structured analysis reports
-- game history and replay
-- bot levels 1 to 10
-- adaptive player memory
-- training/export reports
-- research roadmap for future strength work
-- Next.js frontend
-- interactive chessboard
-- human vs human and human vs bot modes
-- side panel with actual numeric math
-- legal possibilities panel
-- replay controls
-- browser-local saved game archive
+- **Rust Engine Core**: Bitboard representation, Zobrist hashing, and perft suites.
+- **Tactical Search**: Negamax search, Alpha-Beta pruning, PV search, Aspiration windows, LMR, NMP, SEE, Singular & Check Extensions, and Countermove heuristics.
+- **Machine Learning**: NNUE evaluation (sparse HalfKP input, fully connected layers) with a backpropagation training loop, weight persistence, and dataset generation.
+- **Endgame Knowledge**: Direct Syzygy tablebase probing via Lichess HTTP API for positions with 7 or fewer pieces.
+- **Opening Book**: Opening move generator from self-play lists and automatic bot probing.
+- **Axum API Server**: Session-based user authentication, ratings parity matchmaking, and real-time live game Websockets.
+- **Next.js Web App**: Offline bot play with active math streaming, and online multiplayer matches with real-time play, pawn promotions, resignation, and spectator support.
 
 ## Quick Start
 
@@ -76,25 +48,6 @@ Analyze a position with real math:
 cargo run -p axiorynth_engine --bin axiorynth -- analyze startpos 2
 ```
 
-Run a small benchmark:
-
-```powershell
-cargo run -p axiorynth_engine --bin axiorynth -- bench 3
-```
-
-Run the web app:
-
-```powershell
-npm.cmd install
-npm.cmd run web:dev
-```
-
-Then open:
-
-```text
-http://127.0.0.1:3000
-```
-
 ## CLI Commands
 
 ```powershell
@@ -107,15 +60,18 @@ cargo run -p axiorynth_engine --bin axiorynth -- bot 5 startpos
 cargo run -p axiorynth_engine --bin axiorynth -- game e2e4 e7e5 g1f3
 cargo run -p axiorynth_engine --bin axiorynth -- memory e2e4 e7e5
 cargo run -p axiorynth_engine --bin axiorynth -- train e2e4 e7e5
-cargo run -p axiorynth_engine --bin axiorynth -- frontend-state --bot-level 3 --depth 2 e2e4 e7e5
 cargo run -p axiorynth_engine --bin axiorynth -- roadmap
+cargo run -p axiorynth_engine --bin axiorynth -- self-play
+cargo run -p axiorynth_engine --bin axiorynth -- spsa-tune
+cargo run -p axiorynth_engine --bin axiorynth -- load-config
+cargo run -p axiorynth_engine --bin axiorynth -- gauntlet <games> <depth_a> <depth_b>
+cargo run -p axiorynth_engine --bin axiorynth -- book-gen <num_games> <depth>
+cargo run -p axiorynth_engine --bin axiorynth -- book-probe <fen_or_startpos>
+cargo run -p axiorynth_engine --bin axiorynth -- nnue-gen <games> <depth>
+cargo run -p axiorynth_engine --bin axiorynth -- nnue-train <data-file> <epochs>
 ```
 
-Running without arguments starts the UCI protocol loop:
-
-```powershell
-cargo run -p axiorynth_engine --bin axiorynth
-```
+Running without arguments starts the UCI protocol loop.
 
 ## Example Analysis Output
 
@@ -149,64 +105,21 @@ candidate 1: ...
 
 ```mermaid
 flowchart TD
-    Web["Next.js Web App"] --> API["Next.js API Route"]
-    API --> CLI["Rust CLI Bridge"]
-    CLI["CLI / UCI Process"] --> Engine["Axiorynth Engine Core"]
+    Web["Next.js Web App"] --> WS["WebSocket Live Game Stream"]
+    Web --> API["Axum Backend API"]
+    WS --> Backend["Rust Axum Backend"]
+    API --> Backend
+    Backend --> Engine["Axiorynth Engine Core"]
+    Backend --> DB["SQLite Database"]
     Engine --> Board["Board, FEN, Bitboards"]
     Engine --> Movegen["Legal Move Generation"]
-    Engine --> Eval["Numeric Evaluation"]
-    Engine --> Search["Search"]
+    Engine --> Eval["NNUE / Handcrafted Eval"]
+    Engine --> Search["Search Engine"]
     Search --> TT["Transposition Table"]
-    Search --> Ordering["Move Ordering"]
+    Search --> Ordering["Killer, History & Countermoves"]
+    Search --> Tablebase["Lichess Syzygy Tablebases"]
     Engine --> Analysis["Analysis Reports"]
-    Engine --> Game["Game History / Replay"]
-    Engine --> Bot["Bot Levels"]
-    Engine --> Memory["Adaptive Memory"]
-    Engine --> Training["Training Exports"]
-```
-
-## Repository Layout
-
-```text
-chess/
-  Cargo.toml
-  package.json
-  README.md
-  apps/
-    web/
-      app/
-        api/state/route.ts
-        page.tsx
-        globals.css
-  docs/
-    master-implementation-plan.md
-    phase-1-engine-foundation.md
-    phase-2-first-bot-search.md
-    phase-3-uci-protocol.md
-    phase-4-strength-and-performance.md
-    phase-5-analysis-report-layer.md
-    phase-6-to-10-engine-completion.md
-  engine/
-    Cargo.toml
-    src/
-      analysis.rs
-      bench.rs
-      board.rs
-      bot.rs
-      eval.rs
-      game.rs
-      memory.rs
-      movegen.rs
-      mv.rs
-      perft.rs
-      research.rs
-      search.rs
-      training.rs
-      types.rs
-      uci.rs
-      zobrist.rs
-      bin/
-        axiorynth.rs
+    Engine --> Game["Game History & Opening Books"]
 ```
 
 ## Phase Status
@@ -224,77 +137,20 @@ chess/
 | 9 | Training/export reports | Complete |
 | 10 | Research roadmap artifacts | Complete |
 | 11 | Local Next.js play app | Complete |
+| 12 | Stronger Backend Layer | Complete |
+| 13 | Real-Time Math Streaming | Complete |
+| 14 | Engine Time Management | Complete |
+| 15 | Bot Learning and Mistakes | Complete |
+| 16 | Engine Extensions (Singular & Check) | Complete |
+| 17 | SPSA Tuning & Gauntlet Runner | Complete |
+| 18 | Opening Book System | Complete |
+| 19 | NNUE Pipeline & Backpropagation | Complete |
+| 20 | Syzygy Tablebase Integration | Complete |
+| 21 | Online Multiplayer Platform | Complete |
 
-Read the full plan here:
-
+Read the full plans here:
 - [Master Implementation Plan](docs/master-implementation-plan.md)
 - [Next Plans And Current Limitations](docs/next-plans-and-current-limitations.md)
-
-## Engine Systems
-
-### Move Generation
-
-Axiorynth uses a correctness-first legal move pipeline:
-
-```text
-generate pseudo-legal moves
-make each move
-check king safety
-undo the move
-keep legal moves
-```
-
-Perft tests cover standard and tricky positions, including Kiwipete,
-promotion-heavy positions, tactical middlegames, castling, and en passant.
-
-### Evaluation
-
-Current evaluation terms:
-
-- material
-- piece-square tables
-- mobility
-- center control
-- pawn structure
-- king safety
-
-The evaluator returns structured math lines for UI/backend consumption.
-
-### Search
-
-Current search features:
-
-- negamax
-- alpha-beta pruning
-- quiescence search
-- iterative deepening
-- transposition table
-- hash move ordering
-- killer moves
-- history heuristic
-- mate scoring
-- candidate ranking
-- principal variation output
-- stop/time/node limits
-
-### UCI
-
-Axiorynth supports standard GUI-style commands:
-
-```text
-uci
-isready
-ucinewgame
-position startpos
-position fen ...
-go depth N
-go movetime N
-go wtime ... btime ...
-go nodes N
-go infinite
-stop
-quit
-```
 
 ## Testing
 
@@ -307,157 +163,28 @@ cargo test
 Current verified status:
 
 ```text
-40 tests passed
+45 tests passed
 0 failed
 ```
 
 Tests cover:
-
 - FEN round trips
-- legal move generation
-- perft reference positions
-- compact undo hash restoration
-- Zobrist determinism
-- alpha-beta search behavior
-- mate-in-one detection
-- transposition table usage
-- UCI parsing
-- analysis reports
-- game replay
-- bot levels
-- adaptive memory
-- training exports
-- research roadmap generation
+- Legal move generation
+- Perft reference positions
+- Zobrist hashing determinism
+- Alpha-Beta & PV search behavior
+- Transposition table hits
+- Opening Book load/save and generation
+- NNUE network forward pass and backpropagation training loss decay
+- API endpoints & WebSocket multiplayer moves
 
 ## Web App
 
-The web app is a local full-stack interface:
+The web app is a full-stack Next.js interface:
+- **Local Play**: Human vs human, human vs bot modes, bot levels, saved games, and live engine evaluation panels.
+- **Online Play**: Stateful registration/login, competitive matchmaking queue, and real-time live game Websockets.
+- **Spectating**: Click any ongoing game from the dashboard list to spectate live multiplayer play.
 
-- custom chessboard
-- self-play mode
-- human vs bot mode
-- bot level selector
-- analysis depth selector
-- legal move list
-- move history
-- replay slider
-- saved game archive in browser local storage
-- visible evaluation and search math
-
-The frontend calls the Rust engine through:
-
-```text
-Next.js API route -> cargo run -> axiorynth frontend-state -> JSON response
-```
-
-This keeps Rust as the source of chess truth while letting the app move quickly.
-
-## Current Limitations
-
-Axiorynth is not yet a top-engine-strength competitor. The current engine is a
-well-structured research foundation with a complete local app layer.
-
-Known limitations:
-
-- no null-move pruning yet
-- no late move reductions yet
-- no aspiration windows yet
-- no principal variation search yet
-- no NNUE evaluator yet
-- no opening book yet
-- no tablebase support yet
-- no persistent database yet
-- no dedicated Rust HTTP service yet
-- no WebSocket analysis stream yet
-- no online multiplayer yet
-
-## Next Plans
-
-### 1. Backend API Layer
-
-Build a local backend around the engine:
-
-- start game
-- make move
-- request bot move
-- analyze position
-- store history
-- stream search/math events
-
-Recommended stack:
-
-```text
-Rust Axum backend
-SQLite first
-WebSocket analysis stream
-```
-
-### 2. Frontend Expansion
-
-Expand the current user-facing chess app:
-
-- drag-and-drop pieces
-- promotion chooser
-- history page
-- opening explorer
-- training review mode
-- streamed search panel
-- richer game archive
-
-Recommended stack:
-
-```text
-Next.js + TypeScript
-Rust Axum API
-WebSocket analysis stream
-```
-
-### 3. Engine Strength Phase
-
-Add deeper search systems:
-
-- principal variation search
-- aspiration windows
-- null-move pruning
-- late move reductions
-- futility pruning
-- static exchange evaluation
-- better time management
-
-### 4. Data And Learning Phase
-
-Make adaptive memory persistent:
-
-- SQLite player profiles
-- opening tendencies
-- repeated mistakes
-- win/loss history
-- replay-derived training notes
-- bot adaptation settings
-
-### 5. Research Phase
-
-Build the scientific loop:
-
-- self-play runner
-- gauntlet runner
-- Elo estimation
-- SPSA tuning
-- opening book generation
-- NNUE feature extraction prototype
-
-## Philosophy
-
-Axiorynth is not trying to look intelligent from the outside while hiding the
-numbers. It is built so the user can inspect the engine's actual reasoning:
-
-```text
-What moves were legal?
-What did the evaluator score?
-Which candidates were searched?
-How many nodes were visited?
-What did alpha-beta prune?
-Which line became the principal variation?
-```
-
-That traceability is the soul of the project.
+The frontend calls the Rust backend:
+- REST API (Port 8080) for auth, matchmaking, profile info, and game history.
+- WebSockets (Port 8080) for active bot searches and live game multiplayer moves.

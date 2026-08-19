@@ -1,0 +1,60 @@
+{
+  "entries": {
+    "7be35ad96d432c38": [
+      {
+        "uci_move": "a3a2",
+        "weight": 10,
+        "score": 0.5
+      }
+    ],
+    "840000d6b4c11e9c": [
+      {
+        "uci_move": "a1a3",
+        "weight": 5,
+        "score": 0.5
+      }
+    ],
+    "a4a764c21aaac099": [
+      {
+        "uci_move": "a7a6",
+        "weight": 5,
+        "score": 0.5
+      }
+    ],
+    "714854f9a476f6ec": [
+      {
+        "uci_move": "a8a7",
+        "weight": 10,
+        "score": 0.5
+      }
+    ],
+    "17228c020eebefe2": [
+      {
+        "uci_move": "a2a3",
+        "weight": 10,
+        "score": 0.5
+      }
+    ],
+    "1d898222c7de3536": [
+      {
+        "uci_move": "a7a8",
+        "weight": 10,
+        "score": 0.5
+      }
+    ],
+    "d2574b93465b8dcf": [
+      {
+        "uci_move": "a2a4",
+        "weight": 5,
+        "score": 0.5
+      }
+    ],
+    "656061a0079c74d4": [
+      {
+        "uci_move": "a8a7",
+        "weight": 5,
+        "score": 0.5
+      }
+    ]
+  }
+}

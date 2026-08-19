@@ -511,6 +511,51 @@ impl Board {
         }
     }
 
+    pub fn make_null_move(&mut self) -> UndoState {
+        let old_side_to_move = self.side_to_move;
+        let old_castling_rights = self.castling_rights;
+        let old_en_passant = self.en_passant;
+        let old_halfmove_clock = self.halfmove_clock;
+        let old_fullmove_number = self.fullmove_number;
+        let old_hash = self.hash;
+
+        self.hash ^= zobrist::side_to_move(self.side_to_move);
+        self.hash ^= zobrist::en_passant(self.en_passant);
+
+        self.en_passant = None;
+        self.halfmove_clock += 1;
+
+        if self.side_to_move == Color::Black {
+            self.fullmove_number += 1;
+        }
+
+        self.side_to_move = self.side_to_move.opposite();
+        self.hash ^= zobrist::side_to_move(self.side_to_move);
+        self.hash ^= zobrist::en_passant(self.en_passant);
+
+        UndoState {
+            mv: Move::new(Square::from_index(0), Square::from_index(0), None, MoveKind::Quiet),
+            moving_piece: Piece { color: old_side_to_move, kind: PieceKind::King },
+            captured: None,
+            rook_move: None,
+            side_to_move: old_side_to_move,
+            castling_rights: old_castling_rights,
+            en_passant: old_en_passant,
+            halfmove_clock: old_halfmove_clock,
+            fullmove_number: old_fullmove_number,
+            hash: old_hash,
+        }
+    }
+
+    pub fn undo_null_move(&mut self, undo: UndoState) {
+        self.side_to_move = undo.side_to_move;
+        self.castling_rights = undo.castling_rights;
+        self.en_passant = undo.en_passant;
+        self.halfmove_clock = undo.halfmove_clock;
+        self.fullmove_number = undo.fullmove_number;
+        self.hash = undo.hash;
+    }
+
     pub fn undo_move(&mut self, undo: UndoState) {
         self.side_to_move = undo.side_to_move;
         self.castling_rights = undo.castling_rights;

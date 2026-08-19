@@ -47,23 +47,7 @@ pub struct GoCommand {
 }
 
 impl GoCommand {
-    pub fn to_limits(self, side_to_move: Color, options: UciOptions) -> SearchLimits {
-        let clock_time = match side_to_move {
-            Color::White => self.wtime,
-            Color::Black => self.btime,
-        };
-        let increment = match side_to_move {
-            Color::White => self.winc,
-            Color::Black => self.binc,
-        };
-
-        let clock_budget = clock_time.map(|remaining| {
-            let moves_to_go = self.movestogo.unwrap_or(30).max(1);
-            let base = remaining.as_millis() / moves_to_go as u128;
-            let inc = increment.map_or(0, |value| value.as_millis() / 2);
-            Duration::from_millis((base + inc).clamp(10, 5_000) as u64)
-        });
-
+    pub fn to_limits(self, _side_to_move: Color, options: UciOptions) -> SearchLimits {
         SearchLimits {
             max_depth: self
                 .depth
@@ -75,9 +59,13 @@ impl GoCommand {
                 .max(1),
             quiescence_depth: options.quiescence_depth,
             candidate_count: options.candidate_count,
-            move_time: self.movetime.or(clock_budget),
+            move_time: self.movetime,
             node_limit: self.nodes,
             hash_size_mb: options.hash_size_mb,
+            wtime: self.wtime.map(|d| d.as_millis() as u64),
+            btime: self.btime.map(|d| d.as_millis() as u64),
+            winc: self.winc.map(|d| d.as_millis() as u64),
+            binc: self.binc.map(|d| d.as_millis() as u64),
         }
     }
 }
@@ -440,7 +428,10 @@ mod tests {
     fn clock_go_allocates_a_budget() {
         let go = parse_go("go wtime 30000 btime 40000 winc 1000 movestogo 20");
         let limits = go.to_limits(Color::White, UciOptions::default());
-        assert!(limits.move_time.is_some());
+        assert!(limits.move_time.is_none());
+        assert_eq!(limits.wtime, Some(30000));
+        assert_eq!(limits.btime, Some(40000));
+        assert_eq!(limits.winc, Some(1000));
         assert_eq!(limits.max_depth, UciOptions::default().search_depth);
     }
 

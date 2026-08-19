@@ -2,200 +2,58 @@
 
 ## Purpose
 
-This document is the master plan for Axiorynth, the custom Rust chess engine and
-future chess platform.
+This document is the master plan for Axiorynth, the custom Rust chess engine and chess platform.
 
-The project goal is to grow in layers:
+The project grew in the following layers:
+1. Correct chess rules (Bitboards, legal move generator, perft)
+2. Playable search (Alpha-beta, transposition tables, move ordering)
+3. Engine protocols (UCI, CLI commands)
+4. Local game play & Bot Levels
+5. Adaptive bot memory (Player tendencies, mistake clustering)
+6. Dedicated Rust backend (Axum HTTP API, SQLite)
+7. Live search streaming (WebSockets, cancellation)
+8. Engine strength upgrades (Singular & Check extensions, countermove heuristics)
+9. Research features (SPSA tuning, Gauntlet runner, Opening Book)
+10. Machine learning (NNUE training pipeline & inference)
+11. Endgames (Syzygy Tablebase HTTP integration)
+12. Online multiplayer (User Auth, matchmaking, live WS play, spectating)
 
-1. correct chess rules
-2. playable search
-3. engine protocol
-4. performance systems
-5. visible numeric analysis
-6. game history and replay
-7. bot levels
-8. adaptive memory
-9. training and export reports
-10. research roadmap toward stronger play
-11. local full-stack play app
-
-The dedicated database backend and online play remain future layers. The local
-web app now exists and calls the Rust engine through a machine-readable state
-command.
+---
 
 ## Completed Phases
 
-### Phase 1 - Engine Foundation
+### Phase 1 to 5 - Engine Core & CLI
+Implemented basic board representations, move generators, alpha-beta negamax search, quiescence, Zobrist hashing, transposition tables, move ordering (killers, history), UCI streaming, and evaluation breakdown.
 
-Implemented:
+### Phase 6 to 10 - Bot Levels & Memory
+Implemented game state recording, replay plys, ten named bot levels, player opening tendencies tracking, mistake clustering, CSV training exports, and the research roadmap.
 
-- bitboard board representation
-- FEN parse/export
-- legal move generation
-- castling, en passant, promotion
-- make/undo
-- perft and divide
-- first numeric evaluation
+### Phase 11 - Next.js Play App
+Implemented the local React chessboard interface, human-vs-bot settings, promotion modal, move history, and static evaluation breakdown math panels.
 
-### Phase 2 - First Bot Search
+### Phase 12 - Stronger Backend Layer
+Implemented a Rust Axum API server backed by SQLite to persist user profiles, game summaries, bot memory adjustments, and active session histories.
 
-Implemented:
+### Phase 13 - Real-Time Math Streaming
+Implemented WebSocket search progress streaming from the Rust engine, enabling live updates (depth, NPS, PV line, transposition table hits) on the frontend.
 
-- negamax
-- alpha-beta pruning
-- quiescence search
-- candidate ranking
-- principal variation
-- search stats
-- CLI commands for best move, eval, and perft
+### Phase 14 & 15 - Time Management & Adaptation
+Implemented time-aware Search limits, mistake clustering, and persistent bot adjustments to penalize previously failed candidate moves.
 
-### Phase 3 - UCI Protocol
+### Phase 16 - Engine Extensions (Sub-Phase 1)
+Implemented check extensions, singular extensions, and countermove heuristics in `engine/src/search.rs` to make bot searches tactically resilient.
+- [Phase 16 Engine Extensions](file:///c:/Personal%20Projects/chess/docs/phase-16-engine-extensions.md)
 
-Implemented:
+### Phase 17 & 18 - SPSA, Gauntlet & Opening Book (Sub-Phases 2-4)
+Implemented full 13-parameter SPSA gradient tuning, a CLI-based gauntlet runner, and Zobrist-hashed opening book lookup tables.
+- [Phase 17 Research Tuning](file:///c:/Personal%20Projects/chess/docs/phase-17-research-tuning.md)
+- [Phase 18 Opening Book](file:///c:/Personal%20Projects/chess/docs/phase-18-opening-book.md)
 
-- UCI loop
-- position commands
-- go commands
-- stop and quit
-- time-aware search limits
-- UCI options
+### Phase 19 & 20 - NNUE & Tablebases (Sub-Phases 5-6)
+Implemented a sparse HalfKP-to-accumulator NNUE evaluation network, weight save/load systems, a backpropagation training CLI, and root Syzygy tablebase probing with optimal DTZ pathfinding.
+- [Phase 19 NNUE Pipeline](file:///c:/Personal%20Projects/chess/docs/phase-19-nnue-pipeline.md)
+- [Phase 20 Tablebase Integration](file:///c:/Personal%20Projects/chess/docs/phase-20-tablebase-integration.md)
 
-### Phase 4 - Strength And Performance
-
-Implemented:
-
-- Zobrist hashing
-- compact undo
-- transposition table
-- hash move ordering
-- killer moves
-- history heuristic
-- per-depth UCI info streaming
-- benchmark command
-
-### Phase 5 - Analysis Report Layer
-
-Implemented:
-
-- structured analysis report
-- legal move list
-- evaluation math
-- search math
-- candidate moves
-- analysis CLI command
-
-## Engine-Side Phases Completed In Final Pass
-
-### Phase 6 - Game History And Replay
-
-Goal:
-
-- store complete local games
-- replay any ply
-- export readable move/history reports
-
-Implemented:
-
-- `Game`
-- `GameRecord`
-- `GameResult`
-- UCI move replay
-- FEN after every move
-- result detection
-- text export
-
-### Phase 7 - Bot Levels
-
-Goal:
-
-- provide named bot levels from easy to stronger
-- expose deterministic search limits for each level
-
-Implemented:
-
-- `BotLevel`
-- `BotProfile`
-- level presets
-- `choose_bot_move`
-- CLI bot command
-
-### Phase 8 - Adaptive Memory
-
-Goal:
-
-- remember player tendencies over games
-- generate notes the bot/backend can use later
-
-Implemented:
-
-- `PlayerMemory`
-- opening move counters
-- result counters
-- repeated first-move detection
-- simple adaptive notes
-
-### Phase 9 - Training And Export Reports
-
-Goal:
-
-- summarize games and memory into training-friendly reports
-- provide text output now, JSON/database later
-
-Implemented:
-
-- `TrainingReport`
-- game summaries
-- memory summaries
-- CSV-like game rows
-
-### Phase 10 - Research Roadmap Artifacts
-
-Goal:
-
-- keep future high-strength engine work concrete and measurable
-
-Implemented:
-
-- research milestones
-- benchmark targets
-- tuning parameter list
-- recommended next engineering tasks
-
-### Phase 11 - Local Full-Stack Play App
-
-Goal:
-
-- provide a usable chess interface
-- connect the frontend to the Rust engine
-- expose the actual evaluation/search math while playing
-
-Implemented:
-
-- Next.js app in `apps/web`
-- API route for engine state
-- Rust `frontend-state` JSON bridge
-- custom chessboard
-- human vs human mode
-- human vs bot mode
-- bot level selector
-- analysis depth selector
-- legal moves panel
-- move history
-- replay slider
-- browser-local saved game archive
-- toggleable math panel
-
-## Future Platform Layer
-
-After the local app phase, the platform layer should include:
-
-- Rust Axum backend API
-- persistent database
-- history page
-- adaptive profile display
-- optional online multiplayer
-- streamed search events
-- player accounts
-
-The full current roadmap and limitations are tracked in
-`docs/next-plans-and-current-limitations.md`.
+### Phase 21 - Online Platform (Sub-Phases 7-8)
+Implemented session-based user authentication, matchmaking pairing, live multiplayer WebSocket streams, automatic Elo rating updates, and spectating support.
+- [Phase 21 Online Platform](file:///c:/Personal%20Projects/chess/docs/phase-21-online-platform.md)

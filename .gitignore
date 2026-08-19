@@ -3,3 +3,10 @@
 /.next/
 /apps/web/.next/
 /apps/web/node_modules/
+*.db
+*.db-*
+*.db-wal
+*.db-shm
+self_play_data.txt
+gauntlet_results.json
+tuned_eval.json

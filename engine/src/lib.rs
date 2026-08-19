@@ -24,8 +24,8 @@ pub mod zobrist;
 pub use analysis::{AnalysisReport, analyze_position};
 pub use bench::{BenchReport, BenchRow, run_bench};
 pub use board::{Board, BoardError, STARTPOS_FEN};
-pub use bot::{BotLevel, BotMove, BotProfile, choose_bot_move};
-pub use eval::{EvalBreakdown, evaluate, evaluate_side_to_move};
+pub use bot::{BotLevel, BotMove, BotProfile, choose_bot_move, choose_bot_move_with_callback};
+pub use eval::{EvalBreakdown, EvalConfig, evaluate, evaluate_side_to_move, load_nnue, unload_nnue, evaluate_nnue};
 pub use game::{Game, GameRecord, GameResult};
 pub use memory::{PlayerMemory, PlayerResult};
 pub use movegen::{find_legal_move_by_uci, generate_legal_moves, generate_pseudo_legal_moves};
@@ -35,7 +35,18 @@ pub use research::{ResearchMilestone, ResearchRoadmap, TuningParameter, research
 pub use search::{
     CandidateMove, MATE_SCORE, SearchConfig, SearchControl, SearchLimits, SearchResult,
     SearchStats, best_move, best_move_with_control, iterative_deepening,
+    iterative_deepening_with_callback,
 };
 pub use training::{TrainingGameRow, TrainingReport, build_training_report};
 pub use types::{Color, Piece, PieceKind, Square};
 pub use uci::{GoCommand, UciOptions, run_uci_stdio};
+
+pub mod book;
+pub use book::{OpeningBook, BookEntry};
+
+pub mod nnue;
+pub use nnue::NnueNetwork;
+
+pub mod tablebase;
+pub use tablebase::{probe_tablebase, probe_root_tablebase, WdlResult};
+

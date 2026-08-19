@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use serde::{Serialize, Deserialize};
 
 use crate::game::{Game, GameResult};
 use crate::types::Color;
@@ -128,6 +129,55 @@ fn early_sequence(game: &Game, max_plies: usize) -> String {
         .map(|record| record.uci.as_str())
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MistakeCluster {
+    pub ply: usize,
+    pub fen_before: String,
+    pub uci_move: String,
+    pub eval_drop: i32,
+}
+
+pub fn analyze_mistakes(game: &Game, player_color: Color) -> Vec<MistakeCluster> {
+    let mut mistakes = Vec::new();
+    let mut board = crate::board::Board::startpos().unwrap();
+    let records = game.records();
+    
+    for i in 0..records.len() {
+        let side_moved = if i % 2 == 0 { Color::White } else { Color::Black };
+        
+        if side_moved == player_color && i + 1 < records.len() {
+            let eval_before = crate::eval::evaluate(&board).total_white_perspective;
+            let fen_before = board.to_fen();
+            let uci_move = records[i].uci.clone();
+            
+            let mut temp_board = board.clone();
+            temp_board.make_move(records[i].mv);
+            temp_board.make_move(records[i+1].mv);
+            
+            let eval_after = crate::eval::evaluate(&temp_board).total_white_perspective;
+            
+            let drop = if player_color == Color::White {
+                eval_after - eval_before
+            } else {
+                eval_before - eval_after
+            };
+            
+            if drop <= -200 { // 2 pawns or more drop in static eval is a big mistake
+                mistakes.push(MistakeCluster {
+                    ply: i,
+                    fen_before,
+                    uci_move,
+                    eval_drop: drop,
+                });
+            }
+        }
+        
+        board.make_move(records[i].mv);
+    }
+    
+    mistakes
 }
 
 #[cfg(test)]
